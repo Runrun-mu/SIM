@@ -27,11 +27,14 @@ specs/        — 规范文档
 - [开发规范](./dev-conventions.md)
 - [CI/CD 流程](./ci-cd.md)
 - [今日任务](./daily-tasks/2026-03-22.md)
+- [明日任务](./daily-tasks/2026-03-23.md)
 
 ## 当前进度
 
 - [x] Phase 0: 基础建设 (脚手架 + CI/CD)
-- [ ] Phase 1: 后端核心框架
-- [ ] Phase 2: 场景实现
-- [ ] Phase 3: 前端
-- [ ] Phase 4: 联调
+- [x] Phase 1: 后端核心框架 (Memory, Agent, Engine, Observatory)
+- [x] Phase 2: 场景实现 (囚徒困境 + 财富分配)
+- [x] Phase 3: 前端 (React + R3F + 3 pages)
+- [x] Phase 4: LLM 接入 (Vercel AI SDK)
+- [x] Phase 5: Fastify + WebSocket
+- [ ] Phase 6: 联调优化 + 更多场景
