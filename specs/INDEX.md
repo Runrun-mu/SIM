@@ -37,4 +37,7 @@ specs/        — 规范文档
 - [x] Phase 3: 前端 (React + R3F + 3 pages)
 - [x] Phase 4: LLM 接入 (Vercel AI SDK)
 - [x] Phase 5: Fastify + WebSocket
-- [ ] Phase 6: 联调优化 + 更多场景
+- [x] Phase 6: 12 新场景 (Public Goods, Ultimatum, Dictator, Hawk-Dove, Trust, Minority, Tragedy of Commons, Axelrod Tournament, Schelling Segregation, Voting Model, SIR Epidemic, Social Influence)
+- [x] Phase 7: Multi-scenario Dashboard + UI 增强
+- [x] 87 tests passing, 0 failures
+- [x] 全部 14 个场景已实现并测试通过
