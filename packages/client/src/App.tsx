@@ -1,7 +1,16 @@
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import CharacterCreate from './pages/CharacterCreate';
+import ScenarioSelect from './pages/ScenarioSelect';
+import Simulation from './pages/Simulation';
+
 export default function App() {
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <h1 className="text-4xl font-bold text-cyber-cyan">Group Dynamics Simulator</h1>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<ScenarioSelect />} />
+        <Route path="/characters" element={<CharacterCreate />} />
+        <Route path="/simulation" element={<Simulation />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
