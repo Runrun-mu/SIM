@@ -1,0 +1,6 @@
+[install]
+# Use default registry
+peer = false
+
+[test]
+coverage = false
