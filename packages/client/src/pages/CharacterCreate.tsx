@@ -1,9 +1,45 @@
 import type { AgentIdentity } from '@sim/shared';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSimulationStore } from '../stores/simulation';
 
 const generateId = () => `agent-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+
+const MAX_AGENTS = 8;
+
+/** Generate a deterministic HSL color from a name string */
+function nameToColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = ((hash % 360) + 360) % 360;
+  return `hsl(${hue}, 70%, 60%)`;
+}
+
+/** Map personality keywords to trait tags */
+function getTraitTags(personality: string): { label: string; color: string }[] {
+  const lower = personality.toLowerCase();
+  const tags: { label: string; color: string }[] = [];
+  const traitMap: Record<string, string> = {
+    rational: '#00f0ff',
+    analytical: '#00f0ff',
+    bold: '#ff2d55',
+    aggressive: '#ff2d55',
+    empathetic: '#a855f7',
+    cooperative: '#a855f7',
+    curious: '#facc15',
+    adaptive: '#facc15',
+    cautious: '#22c55e',
+    strategic: '#3b82f6',
+  };
+  for (const [keyword, color] of Object.entries(traitMap)) {
+    if (lower.includes(keyword)) {
+      tags.push({ label: keyword, color });
+    }
+  }
+  return tags.length > 0 ? tags : [{ label: 'neutral', color: '#6b7280' }];
+}
 
 const defaultAgent = (): AgentIdentity => ({
   id: generateId(),
@@ -111,17 +147,44 @@ export default function CharacterCreate() {
         </div>
       </div>
 
+      {/* Agent count progress bar */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-mono text-gray-400">
+            Agents: {agents.length} / {MAX_AGENTS}
+          </span>
+          <span className="text-xs font-mono text-gray-500">
+            {agents.length < 2 ? 'Need at least 2 agents' : '✓ Ready to simulate'}
+          </span>
+        </div>
+        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500 ease-out"
+            style={{
+              width: `${(agents.length / MAX_AGENTS) * 100}%`,
+              background:
+                agents.length < 2 ? '#ff2d55' : 'linear-gradient(90deg, #00f0ff, #7b2ff7)',
+            }}
+          />
+        </div>
+      </div>
+
       {agents.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">
+        <div className="text-center py-20 text-gray-500 animate-fade-in-up">
           <p className="text-xl mb-4">No agents yet</p>
           <p>Click "Load Presets" to add example agents or "Add Agent" to create custom ones.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {agents.map((agent) => (
+          {agents.map((agent, index) => (
             <div
               key={agent.id}
-              className="p-6 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl"
+              className="p-6 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl transition-all duration-300 hover:border-white/20 hover:bg-white/[0.07] animate-slide-in"
+              style={{
+                animationDelay: `${index * 0.08}s`,
+                opacity: 0,
+                animationFillMode: 'forwards',
+              }}
             >
               {editingId === agent.id ? (
                 <AgentForm
@@ -135,11 +198,24 @@ export default function CharacterCreate() {
               ) : (
                 <div>
                   <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-xl font-bold text-white">{agent.name || 'Unnamed'}</h3>
-                      <p className="text-gray-400 text-sm">
-                        {agent.occupation} · Age {agent.age} · 💰 {agent.wealth}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      {/* Color-coded avatar */}
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
+                        style={{
+                          backgroundColor: `${nameToColor(agent.name || 'U')}20`,
+                          color: nameToColor(agent.name || 'U'),
+                          border: `2px solid ${nameToColor(agent.name || 'U')}40`,
+                        }}
+                      >
+                        {(agent.name || 'U').charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">{agent.name || 'Unnamed'}</h3>
+                        <p className="text-gray-400 text-sm">
+                          {agent.occupation} · Age {agent.age} · 💰 {agent.wealth}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -157,6 +233,22 @@ export default function CharacterCreate() {
                         Delete
                       </button>
                     </div>
+                  </div>
+                  {/* Personality trait tags */}
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {getTraitTags(agent.personality).map((tag) => (
+                      <span
+                        key={tag.label}
+                        className="text-[10px] font-mono px-2 py-0.5 rounded-full"
+                        style={{
+                          backgroundColor: `${tag.color}15`,
+                          color: tag.color,
+                          border: `1px solid ${tag.color}30`,
+                        }}
+                      >
+                        {tag.label}
+                      </span>
+                    ))}
                   </div>
                   <p className="text-gray-300 mt-2 text-sm">{agent.personality}</p>
                   <p className="text-gray-500 mt-1 text-xs italic line-clamp-2">{agent.soul}</p>

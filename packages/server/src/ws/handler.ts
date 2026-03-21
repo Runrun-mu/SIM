@@ -1,6 +1,7 @@
 import type { WebSocket } from '@fastify/websocket';
 import type {
   AgentIdentity,
+  HDPayoffMatrix,
   ScenarioConfig,
   WSMessageToClient,
   WSMessageToServer,
@@ -10,8 +11,20 @@ import { Observatory } from '../core/observatory';
 import { type ScenarioEnvironment, SimulationEngine } from '../core/simulation-engine';
 import { createLLMAdapter } from '../llm/index';
 import type { LLMAdapter } from '../llm/types';
+import { AxelrodTournamentEnvironment } from '../scenarios/axelrod-tournament/environment';
+import { DictatorGameEnvironment } from '../scenarios/dictator-game/environment';
+import { HawkDoveEnvironment } from '../scenarios/hawk-dove/environment';
+import { MinorityGameEnvironment } from '../scenarios/minority-game/environment';
 import { createPDConfig } from '../scenarios/prisoners-dilemma/config';
 import { PrisonersDilemmaEnvironment } from '../scenarios/prisoners-dilemma/environment';
+import { PublicGoodsEnvironment } from '../scenarios/public-goods/environment';
+import { SchellingSegregationEnvironment } from '../scenarios/schelling-segregation/environment';
+import { SIREpidemicEnvironment } from '../scenarios/sir-epidemic/environment';
+import { SocialInfluenceEnvironment } from '../scenarios/social-influence/environment';
+import { TragedyOfCommonsEnvironment } from '../scenarios/tragedy-of-commons/environment';
+import { TrustGameEnvironment } from '../scenarios/trust-game/environment';
+import { UltimatumGameEnvironment } from '../scenarios/ultimatum-game/environment';
+import { VotingModelEnvironment } from '../scenarios/voting-model/environment';
 import { createWDConfig } from '../scenarios/wealth-distribution/config';
 import { WealthDistributionEnvironment } from '../scenarios/wealth-distribution/environment';
 
@@ -77,7 +90,6 @@ export class SimulationHandler {
 
     this.observatory.clear();
 
-    // Create environment based on scenario type
     const environment = this.createEnvironment(config);
     if (!environment) {
       this.send({ type: 'error', message: `Unknown scenario type: ${config.type}` });
@@ -94,7 +106,6 @@ export class SimulationHandler {
 
     this.send({ type: 'simulation-started', config });
 
-    // Run simulation asynchronously
     this.engine.start().then(() => {
       this.send({
         type: 'simulation-ended',
@@ -104,6 +115,7 @@ export class SimulationHandler {
   }
 
   private createEnvironment(config: ScenarioConfig): ScenarioEnvironment | null {
+    const p = config.parameters;
     switch (config.type) {
       case 'prisoners-dilemma': {
         const pdConfig = createPDConfig(config);
@@ -113,6 +125,74 @@ export class SimulationHandler {
         const wdConfig = createWDConfig(config);
         return new WealthDistributionEnvironment(wdConfig.parameters.tradeRange, this.llm);
       }
+      case 'public-goods':
+        return new PublicGoodsEnvironment(
+          { multiplier: (p.multiplier as number) ?? 2, endowment: (p.endowment as number) ?? 20 },
+          this.llm,
+        );
+      case 'ultimatum-game':
+        return new UltimatumGameEnvironment((p.stakeAmount as number) ?? 100, this.llm);
+      case 'dictator-game':
+        return new DictatorGameEnvironment((p.stakeAmount as number) ?? 100, this.llm);
+      case 'hawk-dove':
+        return new HawkDoveEnvironment(
+          (p.payoffMatrix as HDPayoffMatrix) ?? {
+            hawkHawk: -2,
+            hawkDove: 6,
+            doveHawk: 1,
+            doveDove: 3,
+          },
+          this.llm,
+        );
+      case 'trust-game':
+        return new TrustGameEnvironment(
+          { endowment: (p.endowment as number) ?? 100, multiplier: (p.multiplier as number) ?? 3 },
+          this.llm,
+        );
+      case 'minority-game':
+        return new MinorityGameEnvironment((p.reward as number) ?? 10, this.llm);
+      case 'tragedy-of-commons':
+        return new TragedyOfCommonsEnvironment(
+          {
+            pool: (p.pool as number) ?? 1000,
+            regenRate: (p.regenRate as number) ?? 0.1,
+            maxExtraction: (p.maxExtraction as number) ?? 50,
+          },
+          this.llm,
+        );
+      case 'axelrod-tournament':
+        return new AxelrodTournamentEnvironment(
+          { roundsPerMatch: (p.roundsPerMatch as number) ?? 10 },
+          this.llm,
+        );
+      case 'schelling-segregation':
+        return new SchellingSegregationEnvironment(
+          { tolerance: (p.tolerance as number) ?? 0.5, numGroups: (p.numGroups as number) ?? 2 },
+          this.llm,
+        );
+      case 'voting-model':
+        return new VotingModelEnvironment(
+          (p.candidates as string[]) ?? ['Alpha', 'Beta', 'Gamma'],
+          this.llm,
+        );
+      case 'sir-epidemic':
+        return new SIREpidemicEnvironment(
+          {
+            infectionProb: (p.infectionProb as number) ?? 0.3,
+            recoveryProb: (p.recoveryProb as number) ?? 0.1,
+            initialInfected: (p.initialInfected as number) ?? 1,
+            contactsPerTick: (p.contactsPerTick as number) ?? 3,
+          },
+          this.llm,
+        );
+      case 'social-influence':
+        return new SocialInfluenceEnvironment(
+          {
+            opinionRange: (p.opinionRange as number) ?? 100,
+            influenceRadius: (p.influenceRadius as number) ?? 20,
+          },
+          this.llm,
+        );
       default:
         return null;
     }
@@ -120,7 +200,6 @@ export class SimulationHandler {
 
   private send(msg: WSMessageToClient): void {
     if (this.socket.readyState === 1) {
-      // OPEN
       this.socket.send(JSON.stringify(msg));
     }
   }

@@ -1,14 +1,19 @@
 import {
+  Area,
   CartesianGrid,
+  ComposedChart,
   Legend,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
 import { useSimulationStore } from '../stores/simulation';
+
+const NEON_CYAN = '#00f0ff';
+const NEON_PURPLE = '#7b2ff7';
+const NEON_PINK = '#ff2d55';
 
 export default function Dashboard() {
   const { tickHistory, scenarioType, summary, status } = useSimulationStore();
@@ -28,59 +33,119 @@ export default function Dashboard() {
       {/* Chart */}
       <div className="flex-1 p-4">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
-            <XAxis dataKey="tick" stroke="#666" fontSize={10} />
-            <YAxis stroke="#666" fontSize={10} />
+          <ComposedChart data={chartData}>
+            <defs>
+              <linearGradient id="gradCyan" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={NEON_CYAN} stopOpacity={0.3} />
+                <stop offset="100%" stopColor={NEON_CYAN} stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="gradPurple" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={NEON_PURPLE} stopOpacity={0.3} />
+                <stop offset="100%" stopColor={NEON_PURPLE} stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="gradPink" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={NEON_PINK} stopOpacity={0.3} />
+                <stop offset="100%" stopColor={NEON_PINK} stopOpacity={0} />
+              </linearGradient>
+              <filter id="glowCyan">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <filter id="glowPurple">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <filter id="glowPink">
+                <feGaussianBlur stdDeviation="3" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
+            <XAxis
+              dataKey="tick"
+              stroke="#444"
+              fontSize={10}
+              tickLine={false}
+              axisLine={{ stroke: '#ffffff10' }}
+            />
+            <YAxis
+              stroke="#444"
+              fontSize={10}
+              tickLine={false}
+              axisLine={{ stroke: '#ffffff10' }}
+            />
             <Tooltip
               contentStyle={{
-                background: '#1a1a2e',
-                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(10, 10, 20, 0.9)',
+                border: '1px solid rgba(0, 240, 255, 0.2)',
                 borderRadius: '8px',
+                boxShadow: '0 0 20px rgba(0, 240, 255, 0.1)',
               }}
             />
             <Legend />
             {scenarioType === 'prisoners-dilemma' && (
               <>
-                <Line
+                <Area
                   type="monotone"
                   dataKey="cooperationRate"
-                  stroke="#00f0ff"
-                  name="Cooperation %"
-                  dot={false}
-                  strokeWidth={2}
+                  fill="url(#gradCyan)"
+                  stroke="none"
                 />
                 <Line
                   type="monotone"
+                  dataKey="cooperationRate"
+                  stroke={NEON_CYAN}
+                  name="Cooperation %"
+                  dot={false}
+                  strokeWidth={2}
+                  filter="url(#glowCyan)"
+                />
+                <Area type="monotone" dataKey="avgScore" fill="url(#gradPurple)" stroke="none" />
+                <Line
+                  type="monotone"
                   dataKey="avgScore"
-                  stroke="#7b2ff7"
+                  stroke={NEON_PURPLE}
                   name="Avg Score"
                   dot={false}
                   strokeWidth={2}
+                  filter="url(#glowPurple)"
                 />
               </>
             )}
             {scenarioType === 'wealth-distribution' && (
               <>
+                <Area type="monotone" dataKey="gini" fill="url(#gradPink)" stroke="none" />
                 <Line
                   type="monotone"
                   dataKey="gini"
-                  stroke="#ff2d55"
+                  stroke={NEON_PINK}
                   name="Gini Coefficient"
                   dot={false}
                   strokeWidth={2}
+                  filter="url(#glowPink)"
                 />
+                <Area type="monotone" dataKey="top10" fill="url(#gradCyan)" stroke="none" />
                 <Line
                   type="monotone"
                   dataKey="top10"
-                  stroke="#00f0ff"
+                  stroke={NEON_CYAN}
                   name="Top 10% Share"
                   dot={false}
                   strokeWidth={2}
+                  filter="url(#glowCyan)"
                 />
               </>
             )}
-          </LineChart>
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
 

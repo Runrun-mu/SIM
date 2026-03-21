@@ -16,14 +16,60 @@ server.get('/api/scenarios', async () => {
     {
       type: 'prisoners-dilemma',
       name: "Prisoner's Dilemma",
-      description:
-        'Agents are randomly paired and must choose to cooperate or defect. Classic game theory scenario.',
+      description: 'Classic game theory: cooperate or defect.',
     },
     {
       type: 'wealth-distribution',
       name: 'Wealth Distribution',
-      description:
-        'Agents trade resources with each other. Observe wealth concentration and inequality dynamics.',
+      description: 'Trade resources, observe inequality.',
+    },
+    {
+      type: 'public-goods',
+      name: 'Public Goods Game',
+      description: 'Contribute to a shared pool. Free-rider problem.',
+    },
+    {
+      type: 'ultimatum-game',
+      name: 'Ultimatum Game',
+      description: 'Propose a split; accept or reject.',
+    },
+    {
+      type: 'dictator-game',
+      name: 'Dictator Game',
+      description: 'Dictator decides the split. Study altruism.',
+    },
+    {
+      type: 'hawk-dove',
+      name: 'Hawk-Dove Game',
+      description: 'Aggressive vs peaceful strategies.',
+    },
+    { type: 'trust-game', name: 'Trust Game', description: 'Invest and return. Build trust.' },
+    { type: 'minority-game', name: 'Minority Game', description: 'Choose A or B. Minority wins.' },
+    {
+      type: 'tragedy-of-commons',
+      name: 'Tragedy of the Commons',
+      description: 'Shared resource extraction dilemma.',
+    },
+    {
+      type: 'axelrod-tournament',
+      name: 'Axelrod Tournament',
+      description: 'Iterated PD round-robin tournament.',
+    },
+    {
+      type: 'schelling-segregation',
+      name: 'Schelling Segregation',
+      description: 'Agents prefer similar neighbors.',
+    },
+    {
+      type: 'voting-model',
+      name: 'Voting Model',
+      description: 'Multi-round voting for candidates.',
+    },
+    { type: 'sir-epidemic', name: 'SIR Epidemic', description: 'Disease spreading simulation.' },
+    {
+      type: 'social-influence',
+      name: 'Social Influence',
+      description: 'Opinion dynamics and consensus.',
     },
   ];
 });

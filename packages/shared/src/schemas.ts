@@ -43,7 +43,22 @@ export const ResourceAttributesSchema = z
 // ========================
 
 export const ScenarioConfigSchema = z.object({
-  type: z.enum(['prisoners-dilemma', 'wealth-distribution']),
+  type: z.enum([
+    'prisoners-dilemma',
+    'wealth-distribution',
+    'public-goods',
+    'ultimatum-game',
+    'dictator-game',
+    'hawk-dove',
+    'trust-game',
+    'minority-game',
+    'tragedy-of-commons',
+    'axelrod-tournament',
+    'schelling-segregation',
+    'voting-model',
+    'sir-epidemic',
+    'social-influence',
+  ]),
   name: z.string().min(1),
   description: z.string(),
   maxTicks: z.number().int().min(1),
@@ -71,6 +86,18 @@ export const TradeProposalSchema = z.object({
   offer: z.number().min(0),
   demand: z.number().min(0),
   reasoning: z.string(),
+});
+
+// ========================
+// Public Goods Config Schema
+// ========================
+
+export const PublicGoodsConfigSchema = z.object({
+  groupSize: z.number().int().min(2),
+  multiplier: z.number().min(1),
+  endowment: z.number().min(0),
+  punishmentCost: z.number().min(0),
+  punishmentPenalty: z.number().min(0),
 });
 
 // ========================

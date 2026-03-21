@@ -58,7 +58,21 @@ export interface AgentState {
 // Scenario Types
 // ========================
 
-export type ScenarioType = 'prisoners-dilemma' | 'wealth-distribution';
+export type ScenarioType =
+  | 'prisoners-dilemma'
+  | 'wealth-distribution'
+  | 'public-goods'
+  | 'ultimatum-game'
+  | 'dictator-game'
+  | 'hawk-dove'
+  | 'trust-game'
+  | 'minority-game'
+  | 'tragedy-of-commons'
+  | 'axelrod-tournament'
+  | 'schelling-segregation'
+  | 'voting-model'
+  | 'sir-epidemic'
+  | 'social-influence';
 
 export interface ScenarioConfig {
   type: ScenarioType;
@@ -107,6 +121,31 @@ export interface TradeProposal {
 }
 
 // ========================
+// Public Goods Game Specific
+// ========================
+
+export interface PublicGoodsConfig {
+  groupSize: number;
+  multiplier: number;
+  endowment: number;
+  punishmentCost: number;
+  punishmentPenalty: number;
+}
+
+// ========================
+// Hawk-Dove Game Specific
+// ========================
+
+export type HDAction = 'hawk' | 'dove';
+
+export interface HDPayoffMatrix {
+  hawkHawk: number;
+  hawkDove: number;
+  doveHawk: number;
+  doveDove: number;
+}
+
+// ========================
 // Observatory / Metrics
 // ========================
 
@@ -129,6 +168,65 @@ export interface AggregatedMetrics {
   giniCoefficient?: number;
   wealthDistribution?: number[];
   top10Percent?: number;
+
+  // Public Goods
+  averageContribution?: number;
+  freeRiderRatio?: number;
+  publicPoolTotal?: number;
+
+  // Ultimatum Game
+  averageOffer?: number;
+  rejectionRate?: number;
+  averageAcceptedOffer?: number;
+
+  // Dictator Game
+  averageDictatorOffer?: number;
+  generosityRate?: number;
+
+  // Hawk-Dove
+  hawkRate?: number;
+  averageResourceGain?: number;
+  conflictRate?: number;
+
+  // Trust Game
+  averageInvestment?: number;
+  averageReturn?: number;
+  trustIndex?: number;
+
+  // Minority Game
+  minorityChoice?: string;
+  winnerCount?: number;
+  switchRate?: number;
+
+  // Tragedy of Commons
+  resourcePool?: number;
+  averageExtraction?: number;
+  sustainabilityIndex?: number;
+
+  // Axelrod Tournament
+  tournamentScores?: Record<string, number>;
+  dominantStrategy?: string;
+
+  // Schelling Segregation
+  segregationIndex?: number;
+  satisfactionRate?: number;
+  moveRate?: number;
+
+  // Voting Model
+  voteDistribution?: Record<string, number>;
+  winningCandidate?: string;
+  swingVoterRate?: number;
+
+  // SIR Epidemic
+  susceptibleCount?: number;
+  infectedCount?: number;
+  recoveredCount?: number;
+  infectionRate?: number;
+
+  // Social Influence
+  opinionDistribution?: Record<string, number>;
+  consensusLevel?: number;
+  averageOpinionShift?: number;
 
   // General
   custom?: Record<string, number>;

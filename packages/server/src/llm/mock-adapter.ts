@@ -53,34 +53,148 @@ export class MockLLMAdapter implements LLMAdapter {
   private generateResponse(request: LLMRequest): string {
     const systemPrompt = request.systemPrompt.toLowerCase();
     const lastMessage = request.messages[request.messages.length - 1]?.content.toLowerCase() ?? '';
-
-    // Detect scenario type from prompt context
-    if (
-      systemPrompt.includes('prisoner') ||
-      systemPrompt.includes('cooperate') ||
-      systemPrompt.includes('defect') ||
-      lastMessage.includes('cooperate') ||
-      lastMessage.includes('defect')
-    ) {
-      return this.generatePDResponse(request);
-    }
-
-    if (
-      systemPrompt.includes('trade') ||
-      systemPrompt.includes('wealth') ||
-      lastMessage.includes('trade') ||
-      lastMessage.includes('offer')
-    ) {
-      return this.generateTradeResponse(request);
-    }
+    const combined = `${systemPrompt} ${lastMessage}`;
 
     // Memory consolidation / reflection
     if (lastMessage.includes('summarize') || lastMessage.includes('consolidate')) {
       return 'Based on recent events, I have observed patterns of interaction and adapted my strategy accordingly.';
     }
 
+    // Public Goods Game
+    if (
+      combined.includes('public pool') ||
+      combined.includes('public goods') ||
+      (lastMessage.includes('endowment') && lastMessage.includes('contribute'))
+    ) {
+      const contribution =
+        this.strategy === 'always-cooperate'
+          ? 20
+          : this.strategy === 'always-defect'
+            ? 0
+            : Math.floor(Math.random() * 20);
+      return JSON.stringify({ contribution, reasoning: `Mock: contributing ${contribution}.` });
+    }
+
+    // Ultimatum Game - responder
+    if (lastMessage.includes('proposer offers') || lastMessage.includes('if you accept')) {
+      const accept = this.strategy !== 'always-defect';
+      return JSON.stringify({ accept, reasoning: `Mock: ${accept ? 'accepting' : 'rejecting'}.` });
+    }
+
+    // Ultimatum / Dictator - proposer (offer split)
+    if (
+      lastMessage.includes('you are the proposer') ||
+      lastMessage.includes('you are the dictator')
+    ) {
+      const offer =
+        this.strategy === 'always-cooperate'
+          ? 50
+          : this.strategy === 'always-defect'
+            ? 10
+            : Math.floor(Math.random() * 60) + 10;
+      return JSON.stringify({ offer, reasoning: `Mock: offering ${offer}.` });
+    }
+
+    // Hawk-Dove Game
+    if (
+      lastMessage.includes('hawk') &&
+      lastMessage.includes('dove') &&
+      lastMessage.includes('hawk-dove')
+    ) {
+      const action =
+        this.strategy === 'always-cooperate'
+          ? 'dove'
+          : this.strategy === 'always-defect'
+            ? 'hawk'
+            : Math.random() > 0.5
+              ? 'hawk'
+              : 'dove';
+      return JSON.stringify({ action, reasoning: `Mock: ${action}.` });
+    }
+
+    // Trust Game - investment or return
+    if (lastMessage.includes('trust game')) {
+      const amount =
+        this.strategy === 'always-cooperate'
+          ? 60
+          : this.strategy === 'always-defect'
+            ? 5
+            : Math.floor(Math.random() * 50) + 10;
+      return JSON.stringify({ amount, reasoning: `Mock: amount ${amount}.` });
+    }
+
+    // Minority Game
+    if (lastMessage.includes('minority')) {
+      const choice = Math.random() > 0.5 ? 'A' : 'B';
+      return JSON.stringify({ choice, reasoning: `Mock: choosing ${choice}.` });
+    }
+
+    // Tragedy of Commons
+    if (
+      lastMessage.includes('commons') ||
+      (lastMessage.includes('shared pool') && lastMessage.includes('extract'))
+    ) {
+      const extraction =
+        this.strategy === 'always-cooperate'
+          ? 10
+          : this.strategy === 'always-defect'
+            ? 50
+            : Math.floor(Math.random() * 40) + 5;
+      return JSON.stringify({ extraction, reasoning: `Mock: extracting ${extraction}.` });
+    }
+
+    // Schelling Segregation
+    if (lastMessage.includes('schelling') || lastMessage.includes('segregation')) {
+      const action = Math.random() > 0.5 ? 'stay' : 'move';
+      return JSON.stringify({ action, reasoning: `Mock: ${action}.` });
+    }
+
+    // Voting Model
+    if (lastMessage.includes('voting') || lastMessage.includes('candidate')) {
+      const candidates = ['Alpha', 'Beta', 'Gamma'];
+      const vote = candidates[Math.floor(Math.random() * candidates.length)];
+      return JSON.stringify({ vote, reasoning: `Mock: voting ${vote}.` });
+    }
+
+    // SIR Epidemic
+    if (
+      lastMessage.includes('epidemic') ||
+      (lastMessage.includes('socialize') && lastMessage.includes('isolate'))
+    ) {
+      const actions = ['socialize', 'isolate', 'mask'];
+      const action = actions[Math.floor(Math.random() * actions.length)];
+      return JSON.stringify({ action, reasoning: `Mock: ${action}.` });
+    }
+
+    // Social Influence
+    if (
+      lastMessage.includes('social influence') ||
+      lastMessage.includes('newopinion') ||
+      lastMessage.includes('new opinion')
+    ) {
+      const newOpinion = Math.floor(Math.random() * 100);
+      return JSON.stringify({ newOpinion, reasoning: `Mock: opinion ${newOpinion}.` });
+    }
+
+    // PD / Axelrod (cooperate/defect) — check system prompt too
+    if (
+      combined.includes('cooperate') ||
+      combined.includes('defect') ||
+      combined.includes('prisoner')
+    ) {
+      return this.generatePDResponse(request);
+    }
+
+    // Trade / Wealth
+    if (
+      combined.includes('trade') ||
+      (lastMessage.includes('offer') && lastMessage.includes('demand'))
+    ) {
+      return this.generateTradeResponse();
+    }
+
     // Default fallback
-    return 'I will consider the situation carefully and make my decision.';
+    return JSON.stringify({ action: 'cooperate', reasoning: 'Mock default response.' });
   }
 
   private generatePDResponse(_request: LLMRequest): string {
@@ -94,7 +208,6 @@ export class MockLLMAdapter implements LLMAdapter {
         action = 'defect';
         break;
       case 'tit-for-tat': {
-        // Start cooperative, then mirror last opponent action
         const lastMsg =
           _request.messages[_request.messages.length - 1]?.content.toLowerCase() ?? '';
         if (lastMsg.includes('defected') || lastMsg.includes('betrayed')) {
@@ -105,7 +218,6 @@ export class MockLLMAdapter implements LLMAdapter {
         break;
       }
       default: {
-        // random
         action = PD_ACTIONS[Math.floor(Math.random() * PD_ACTIONS.length)] as PDAction;
       }
     }
@@ -116,7 +228,7 @@ export class MockLLMAdapter implements LLMAdapter {
     });
   }
 
-  private generateTradeResponse(_request: LLMRequest): string {
+  private generateTradeResponse(): string {
     const offer = Math.floor(Math.random() * 30) + 5;
     const demand = Math.floor(Math.random() * 30) + 5;
 
