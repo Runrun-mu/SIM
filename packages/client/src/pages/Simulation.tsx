@@ -7,11 +7,30 @@ import ControlBar from '../ui/ControlBar';
 import Dashboard from '../ui/Dashboard';
 import Timeline from '../ui/Timeline';
 import { wsClient } from '../ws/client';
+import { saveRun } from './MultiDashboard';
 
 export default function Simulation() {
   const navigate = useNavigate();
-  const { scenarioType, agents, status, config, reset, handleWSMessage } = useSimulationStore();
+  const { scenarioType, agents, status, config, summary, tickHistory, reset, handleWSMessage } =
+    useSimulationStore();
   const initialized = useRef(false);
+  const savedRef = useRef(false);
+
+  // Save run data when simulation ends
+  useEffect(() => {
+    if (status === 'ended' && summary && scenarioType && !savedRef.current) {
+      savedRef.current = true;
+      saveRun({
+        id: `run-${Date.now()}`,
+        scenarioType,
+        scenarioName: config?.name ?? scenarioType,
+        agentCount: agents.length,
+        ticks: tickHistory.length,
+        summary,
+        timestamp: Date.now(),
+      });
+    }
+  }, [status, summary, scenarioType, config, agents, tickHistory]);
 
   useEffect(() => {
     if (!scenarioType || agents.length < 2) {

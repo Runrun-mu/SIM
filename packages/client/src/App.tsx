@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import CharacterCreate from './pages/CharacterCreate';
+import MultiDashboard from './pages/MultiDashboard';
 import ScenarioSelect from './pages/ScenarioSelect';
 import Simulation from './pages/Simulation';
 
@@ -10,6 +11,7 @@ export default function App() {
         <Route path="/" element={<ScenarioSelect />} />
         <Route path="/characters" element={<CharacterCreate />} />
         <Route path="/simulation" element={<Simulation />} />
+        <Route path="/dashboard" element={<MultiDashboard />} />
       </Routes>
     </BrowserRouter>
   );

@@ -130,6 +130,16 @@ export default function ScenarioSelect() {
         LLM-driven multi-agent simulation platform
       </p>
 
+      {/* Dashboard link */}
+      <button
+        type="button"
+        onClick={() => navigate('/dashboard')}
+        className="mb-8 px-6 py-3 rounded-xl bg-white/5 border border-cyber-purple/30 hover:border-cyber-purple/60 hover:bg-white/10 transition-all text-sm font-mono text-cyber-purple animate-fade-in-up"
+        style={{ animationDelay: '0.15s', opacity: 0 }}
+      >
+        📊 Multi-Scenario Dashboard →
+      </button>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl w-full">
         {scenarios.map((s, index) => (
           <button
