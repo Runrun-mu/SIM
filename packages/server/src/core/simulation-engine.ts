@@ -91,8 +91,14 @@ export class SimulationEngine {
         this.state.currentTick++;
         const tick = this.state.currentTick;
 
-        // Execute tick
-        const interactions = await this.environment.executeTick(this.agents, tick);
+        // Execute tick (with error recovery per tick)
+        let interactions: Interaction[] = [];
+        try {
+          interactions = await this.environment.executeTick(this.agents, tick);
+        } catch (tickError) {
+          console.error(`[SimEngine] Tick ${tick} executeTick failed:`, tickError);
+          // Continue to next tick instead of crashing
+        }
 
         // Compute metrics
         const aggregated = this.environment.computeMetrics(this.agents, interactions, tick);

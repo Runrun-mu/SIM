@@ -36,10 +36,26 @@ export class Agent {
 
     const messages: LLMMessage[] = [{ role: 'user', content: prompt }];
 
-    const response = await this.llm.generate({
-      systemPrompt,
-      messages,
-    });
+    let response: { content: string };
+    try {
+      // Timeout LLM calls after 15s to prevent simulation from hanging
+      const result = await Promise.race([
+        this.llm.generate({ systemPrompt, messages }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('LLM call timed out after 15s')), 15_000),
+        ),
+      ]);
+      response = result;
+    } catch (err) {
+      console.warn(
+        `[Agent ${this.identity.name}] LLM error at tick ${tick}:`,
+        err instanceof Error ? err.message : err,
+      );
+      // Fallback response
+      response = {
+        content: JSON.stringify({ action: 'cooperate', reasoning: 'Fallback: LLM unavailable.' }),
+      };
+    }
 
     // Record the decision in memory
     this.memory.add(`Decision: ${response.content}`, 'action', tick, 0.7);

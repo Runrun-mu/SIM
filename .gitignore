@@ -25,3 +25,9 @@ coverage/
 
 # Logs
 *.log
+
+# Bug reports (local only)
+bug/
+
+# Raw art assets (large binary files)
+rawasset/

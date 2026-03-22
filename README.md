@@ -14,8 +14,18 @@ This system uses Large Language Models (GPT-4o-mini by default) to drive autonom
 |----------|-------------|-------------|
 | **Prisoner's Dilemma** | Agents choose to cooperate or defect in pairwise interactions | Cooperation rate, strategy distribution, cumulative scores |
 | **Wealth Distribution** | Agents negotiate trades in a dynamic market | Gini coefficient, wealth distribution, Top 10% share |
-
-> More scenarios (Public Goods Game, Ultimatum Game, Hawk-Dove, Trust Game, etc.) are being added progressively.
+| **Public Goods** | Contribute to a shared pool, free-rider problem | Average contribution, free-rider ratio, pool total |
+| **Ultimatum Game** | Propose a split; accept or reject | Average offer, rejection rate |
+| **Dictator Game** | Dictator decides the split | Average offer, generosity rate |
+| **Hawk-Dove** | Aggressive vs peaceful strategies | Hawk rate, conflict rate, average resource gain |
+| **Trust Game** | Invest and return, build trust | Average investment/return, trust index |
+| **Minority Game** | Choose A or B, minority wins | Winner count, switch rate |
+| **Tragedy of Commons** | Shared resource extraction dilemma | Resource pool, average extraction, sustainability index |
+| **Axelrod Tournament** | Iterated PD round-robin tournament | Tournament scores, dominant strategy |
+| **Schelling Segregation** | Agents prefer similar neighbors | Segregation index, satisfaction rate, move rate |
+| **Voting Model** | Multi-round voting for candidates | Swing voter rate, winning candidate |
+| **SIR Epidemic** | Disease spreading simulation | Susceptible/infected/recovered counts |
+| **Social Influence** | Opinion dynamics and consensus | Consensus level, average opinion shift |
 
 ## Tech Stack
 
@@ -40,6 +50,9 @@ packages/
   server/     — Simulation engine + LLM adapters + WebSocket API
   client/     — 3D visualization frontend (React + R3F)
 specs/        — Design specs + daily task tracking
+bug/          — Bug reports + fix records
+rawasset/     — 3D art assets (CC0 character models + block tiles)
+Docs/         — Technical documentation (modules, data structures, critical paths)
 ```
 
 ### Core Concepts
@@ -137,6 +150,15 @@ bun run ci:full      # Full CI + build
 - [Conventional Commits](https://www.conventionalcommits.org/): `feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `test:`
 - Pre-commit hook: biome check → typecheck → test
 
+## 3D Assets
+
+| Pack | Type | Count | License | Source |
+|------|------|-------|---------|--------|
+| Quaternius Character Pack | Animated characters | 45 models | CC0 | [@Quaternius](https://quaternius.com) |
+| KayKit Block Bits 1.0 | Voxel terrain blocks | 40 models | CC0 | [KayKit](https://kaylousberg.com) |
+
+Characters are loaded via `useGLTF()` from `@react-three/drei`, assigned deterministically per agent via djb2 hash.
+
 ## UI Design
 
 **Dark cyberpunk theme with glassmorphism:**
@@ -149,9 +171,20 @@ bun run ci:full      # Full CI + build
 
 ### Pages
 
-1. **Scenario Select** — Choose a simulation scenario
+1. **Scenario Select** — Choose from 14 simulation scenarios
 2. **Character Create** — Create/edit/delete agents with custom personalities
 3. **Simulation** — Real-time 3D visualization + timeline + dashboard + controls
+4. **Multi Dashboard** — Compare results across multiple simulation runs
+
+## Documentation
+
+See [`agent.md`](agent.md) for the full project index, or browse detailed docs:
+
+- [Technical Spec](Docs/spec.md) — Stack, workspace, scenarios, ports
+- [Module Guide](Docs/modules.md) — All server/client/shared modules explained
+- [Data Structures](Docs/data-structures.md) — Core type definitions
+- [Critical Paths](Docs/critical-paths.md) — 7 key execution chains with sequence diagrams
+- [Art Assets](Docs/art-assets.md) — Character model catalog + loading guide
 
 ## License
 
