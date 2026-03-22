@@ -1,8 +1,7 @@
 // @ts-nocheck — R3F v8 JSX intrinsic elements not typed
 import { ContactShadows, Grid, OrbitControls } from '@react-three/drei';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
-import * as THREE from 'three';
+import { Canvas } from '@react-three/fiber';
+import { useMemo } from 'react';
 import { useSimulationStore } from '../stores/simulation';
 import AgentNode from './AgentNode';
 
@@ -24,158 +23,49 @@ function arrangeInCircle(count: number, radius = 3): [number, number, number][] 
   });
 }
 
-/** Animated beam between two interacting agents */
-function InteractionBeam({
-  start,
-  end,
-  color,
-  intensity,
-}: {
-  start: [number, number, number];
-  end: [number, number, number];
-  color: string;
-  intensity: number;
-}) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const pulseRef = useRef<THREE.Mesh>(null);
-
-  const midPoint = useMemo(
-    () =>
-      new THREE.Vector3(
-        (start[0] + end[0]) / 2,
-        (start[1] + end[1]) / 2 + 0.5,
-        (start[2] + end[2]) / 2,
-      ),
-    [start, end],
-  );
-
-  const distance = useMemo(() => {
-    const dx = end[0] - start[0];
-    const dz = end[2] - start[2];
-    return Math.sqrt(dx * dx + dz * dz);
-  }, [start, end]);
-
-  const angle = useMemo(() => Math.atan2(end[2] - start[2], end[0] - start[0]), [start, end]);
-
-  useFrame((state) => {
-    if (meshRef.current) {
-      const pulse = Math.sin(state.clock.elapsedTime * 4) * 0.3 + 0.7;
-      (meshRef.current.material as THREE.MeshBasicMaterial).opacity = intensity * pulse;
-    }
-    if (pulseRef.current) {
-      // Move pulse orb along the beam
-      const t = (Math.sin(state.clock.elapsedTime * 3) + 1) / 2;
-      pulseRef.current.position.set(
-        start[0] + (end[0] - start[0]) * t,
-        0.3,
-        start[2] + (end[2] - start[2]) * t,
-      );
-      const scale = 0.08 + Math.sin(state.clock.elapsedTime * 6) * 0.03;
-      pulseRef.current.scale.setScalar(scale);
-    }
-  });
-
-  return (
-    <group>
-      {/* Main beam line */}
-      <mesh ref={meshRef} position={[midPoint.x, 0.15, midPoint.z]} rotation={[0, -angle, 0]}>
-        <boxGeometry args={[distance, 0.02, 0.02]} />
-        <meshBasicMaterial color={color} transparent opacity={intensity * 0.6} />
-      </mesh>
-
-      {/* Traveling pulse orb */}
-      <mesh ref={pulseRef}>
-        <sphereGeometry args={[0.08, 8, 8]} />
-        <meshBasicMaterial color={color} transparent opacity={0.8} />
-      </mesh>
-    </group>
-  );
-}
-
-function InteractionLines() {
-  const { tickHistory, agents } = useSimulationStore();
-  const latestTick = tickHistory[tickHistory.length - 1];
-
-  const positions = useMemo(() => arrangeInCircle(agents.length), [agents.length]);
-
-  if (!latestTick) return null;
-
-  return (
-    <>
-      {latestTick.interactions.map((interaction, idx) => {
-        const idxA = agents.findIndex((a) => a.id === interaction.participants[0]);
-        const idxB = agents.findIndex((a) => a.id === interaction.participants[1]);
-        if (idxA < 0 || idxB < 0) return null;
-        const posA = positions[idxA];
-        const posB = positions[idxB];
-        if (!posA || !posB) return null;
-
-        const beamColor = AGENT_COLORS[idxA % AGENT_COLORS.length] ?? '#00f0ff';
-
-        return (
-          <InteractionBeam
-            key={interaction.id}
-            start={posA}
-            end={posB}
-            color={beamColor}
-            intensity={0.8}
-          />
-        );
-      })}
-    </>
-  );
-}
-
-/** Animated ground ring to give scene spatial grounding */
-function GroundEffects() {
-  const ringRef = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    if (ringRef.current) {
-      ringRef.current.rotation.z = state.clock.elapsedTime * 0.05;
-      const mat = ringRef.current.material as THREE.MeshBasicMaterial;
-      mat.opacity = 0.08 + Math.sin(state.clock.elapsedTime * 0.5) * 0.03;
-    }
-  });
-
-  return (
-    <group>
-      {/* Glowing center ring */}
-      <mesh ref={ringRef} rotation={[Math.PI / 2, 0, 0]} position={[0, -0.49, 0]}>
-        <ringGeometry args={[2.5, 4.5, 64]} />
-        <meshBasicMaterial color="#00f0ff" transparent opacity={0.08} side={THREE.DoubleSide} />
-      </mesh>
-
-      {/* Outer subtle ring */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, -0.48, 0]}>
-        <ringGeometry args={[4.8, 5.0, 64]} />
-        <meshBasicMaterial color="#7b2ff7" transparent opacity={0.06} side={THREE.DoubleSide} />
-      </mesh>
-    </group>
-  );
-}
-
 function Scene() {
   const { agents, selectedAgentId, selectAgent, tickHistory } = useSimulationStore();
 
-  const positions = useMemo(() => arrangeInCircle(agents.length), [agents.length]);
+  const homePositions = useMemo(() => arrangeInCircle(agents.length), [agents.length]);
   const latestTick = tickHistory[tickHistory.length - 1];
 
-  // Build set of interacting agent IDs for animation
-  const interactingAgents = useMemo(() => {
-    if (!latestTick) return new Set<string>();
-    const ids = new Set<string>();
+  // Build interaction targets: agentId → { partnerId, action, meetingPoint }
+  const interactionMap = useMemo(() => {
+    const map = new Map<
+      string,
+      { partnerId: string; action: string; meetingPoint: [number, number, number] }
+    >();
+    if (!latestTick) return map;
+
     for (const interaction of latestTick.interactions) {
-      for (const p of interaction.participants) {
-        ids.add(p);
-      }
+      const [idA, idB] = interaction.participants;
+      if (!idA || !idB) continue;
+
+      const idxA = agents.findIndex((a) => a.id === idA);
+      const idxB = agents.findIndex((a) => a.id === idB);
+      if (idxA < 0 || idxB < 0) continue;
+
+      const posA = homePositions[idxA];
+      const posB = homePositions[idxB];
+      if (!posA || !posB) continue;
+
+      // Meeting point: midpoint between the two agents, slightly raised
+      const meetX = (posA[0] + posB[0]) / 2;
+      const meetZ = (posA[2] + posB[2]) / 2;
+      const meetingPoint: [number, number, number] = [meetX, 0, meetZ];
+
+      const actionA = interaction.actions[idA] ?? '';
+      const actionB = interaction.actions[idB] ?? '';
+
+      map.set(idA, { partnerId: idB, action: actionA, meetingPoint });
+      map.set(idB, { partnerId: idA, action: actionB, meetingPoint });
     }
-    return ids;
-  }, [latestTick]);
+    return map;
+  }, [latestTick, agents, homePositions]);
 
   return (
     <>
-      {/* Improved lighting — bright enough to see models clearly */}
+      {/* Bright, clear lighting */}
       <ambientLight intensity={0.7} color="#e8e0ff" />
       <directionalLight
         position={[8, 12, 5]}
@@ -188,7 +78,7 @@ function Scene() {
       <directionalLight position={[-5, 8, -5]} intensity={0.4} color="#7b2ff7" />
       <pointLight position={[0, 6, 0]} intensity={0.6} color="#00f0ff" distance={20} />
 
-      {/* Ground plane with grid */}
+      {/* Ground */}
       <Grid
         position={[0, -0.5, 0]}
         args={[20, 20]}
@@ -202,8 +92,6 @@ function Scene() {
         fadeStrength={1}
         infiniteGrid
       />
-
-      {/* Contact shadows for grounding */}
       <ContactShadows
         position={[0, -0.49, 0]}
         scale={15}
@@ -213,36 +101,30 @@ function Scene() {
         color="#000020"
       />
 
-      {/* Decorative ground effects */}
-      <GroundEffects />
-
       {/* Agents */}
       {agents.map((agent, i) => {
-        const pos = positions[i];
-        if (!pos) return null;
+        const homePos = homePositions[i];
+        if (!homePos) return null;
         const agentState = latestTick?.agentStates.find((s) => s.identity.id === agent.id);
         const wealth = agentState?.resources.wealth ?? agent.wealth;
-        const isInteracting = interactingAgents.has(agent.id);
+        const interactionInfo = interactionMap.get(agent.id);
 
         return (
           <AgentNode
             key={agent.id}
-            position={pos}
+            homePosition={homePos}
             name={agent.name}
             agentId={agent.id}
             wealth={wealth}
             isSelected={selectedAgentId === agent.id}
-            isInteracting={isInteracting}
             color={AGENT_COLORS[i % AGENT_COLORS.length] ?? '#ffffff'}
             onClick={() => selectAgent(selectedAgentId === agent.id ? null : agent.id)}
+            interactionTarget={interactionInfo?.meetingPoint ?? null}
+            actionLabel={interactionInfo?.action ?? null}
           />
         );
       })}
 
-      {/* Interaction beams */}
-      <InteractionLines />
-
-      {/* Camera controls */}
       <OrbitControls
         enablePan
         enableZoom

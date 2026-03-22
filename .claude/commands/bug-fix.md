@@ -1,4 +1,9 @@
-# /bugfix — 自动 Bug 修复工具
+---
+description: 扫描 bug 目录并自动修复未修复的 bug
+allowed-tools: Bash,Read,Write,Edit,Glob,Grep
+---
+
+# /bug-fix — 自动 Bug 修复工具
 
 你是一个自动化 bug 修复助手。请执行以下步骤：
 

@@ -1,3 +1,8 @@
+---
+description: 创建 Bug 报告并自动触发修复流程
+allowed-tools: Bash,Read,Write,Edit,Glob,Grep
+---
+
 你是一个 Bug 处理助手。当用户描述一个 bug 时，执行以下完整流程：
 
 ## 步骤 1: 确定 Bug 编号

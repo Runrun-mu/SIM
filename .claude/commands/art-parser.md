@@ -1,4 +1,9 @@
-# /artparser — 美术资源解析与索引工具
+---
+description: 解析 rawasset 中的美术资源并建立三层索引
+allowed-tools: Bash,Read,Write,Edit,Glob,Grep
+---
+
+# /art-parser — 美术资源解析与索引工具
 
 你是一个美术资源解析助手。当用户在 `rawasset/` 中添加新的资源包时，执行以下完整流程来建立三层索引体系。
 
