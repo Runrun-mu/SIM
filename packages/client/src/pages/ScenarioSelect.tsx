@@ -125,7 +125,7 @@ export default function ScenarioSelect() {
       </h1>
       <p
         className="text-gray-400 mb-12 text-lg animate-fade-in-up"
-        style={{ animationDelay: '0.1s', opacity: 0 }}
+        style={{ animationDelay: '0.1s' }}
       >
         LLM-driven multi-agent simulation platform
       </p>
@@ -135,7 +135,7 @@ export default function ScenarioSelect() {
         type="button"
         onClick={() => navigate('/dashboard')}
         className="mb-8 px-6 py-3 rounded-xl bg-white/5 border border-cyber-purple/30 hover:border-cyber-purple/60 hover:bg-white/10 transition-all text-sm font-mono text-cyber-purple animate-fade-in-up"
-        style={{ animationDelay: '0.15s', opacity: 0 }}
+        style={{ animationDelay: '0.15s' }}
       >
         📊 Multi-Scenario Dashboard →
       </button>
@@ -147,7 +147,7 @@ export default function ScenarioSelect() {
             type="button"
             onClick={() => handleSelect(s.type)}
             className="group relative p-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl hover:border-cyber-cyan/50 hover:bg-white/10 transition-all duration-300 text-left hover:scale-[1.03] hover:shadow-[0_0_30px_rgba(0,240,255,0.15)] animate-fade-in-up"
-            style={{ animationDelay: `${0.1 + index * 0.06}s`, opacity: 0 }}
+            style={{ animationDelay: `${0.1 + index * 0.06}s` }}
           >
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyber-cyan/5 to-cyber-purple/5 opacity-0 group-hover:opacity-100 transition-opacity" />
             <div className="relative">

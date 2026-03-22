@@ -182,8 +182,6 @@ export default function CharacterCreate() {
               className="p-6 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl transition-all duration-300 hover:border-white/20 hover:bg-white/[0.07] animate-slide-in"
               style={{
                 animationDelay: `${index * 0.08}s`,
-                opacity: 0,
-                animationFillMode: 'forwards',
               }}
             >
               {editingId === agent.id ? (
