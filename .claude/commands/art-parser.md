@@ -1,6 +1,6 @@
 ---
-description: 解析 rawasset 中的美术资源并建立三层索引
-allowed-tools: Bash,Read,Write,Edit,Glob,Grep
+description: "解析 rawasset 中的美术资源并建立三层索引"
+allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 
 # /art-parser — 美术资源解析与索引工具

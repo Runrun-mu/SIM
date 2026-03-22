@@ -51,8 +51,10 @@ export default function Simulation() {
             type: 'start-simulation',
             config: config ?? {
               type: scenarioType,
-              name:
-                scenarioType === 'prisoners-dilemma' ? "Prisoner's Dilemma" : 'Wealth Distribution',
+              name: scenarioType
+                .split('-')
+                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(' '),
               description: '',
               maxTicks: 20,
               agentCount: agents.length,

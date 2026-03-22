@@ -60,6 +60,17 @@ export class MockLLMAdapter implements LLMAdapter {
       return 'Based on recent events, I have observed patterns of interaction and adapted my strategy accordingly.';
     }
 
+    // Trade / Wealth Distribution — must check BEFORE PD since agent souls may contain "cooperate"
+    if (
+      lastMessage.includes('trading game') ||
+      lastMessage.includes('wealth trading') ||
+      lastMessage.includes('trade offer') ||
+      combined.includes('wealth distribution trade') ||
+      (lastMessage.includes('offer') && lastMessage.includes('demand'))
+    ) {
+      return this.generateTradeResponse();
+    }
+
     // Public Goods Game
     if (
       combined.includes('public pool') ||
@@ -176,21 +187,14 @@ export class MockLLMAdapter implements LLMAdapter {
       return JSON.stringify({ newOpinion, reasoning: `Mock: opinion ${newOpinion}.` });
     }
 
-    // PD / Axelrod (cooperate/defect) — check system prompt too
+    // PD / Axelrod (cooperate/defect) — use systemPrompt for scenario ID, lastMessage for actions
     if (
-      combined.includes('cooperate') ||
-      combined.includes('defect') ||
-      combined.includes('prisoner')
+      systemPrompt.includes('prisoner') ||
+      lastMessage.includes('cooperate') ||
+      lastMessage.includes('defect') ||
+      (systemPrompt.includes('cooperate') && systemPrompt.includes('defect'))
     ) {
       return this.generatePDResponse(request);
-    }
-
-    // Trade / Wealth
-    if (
-      combined.includes('trade') ||
-      (lastMessage.includes('offer') && lastMessage.includes('demand'))
-    ) {
-      return this.generateTradeResponse();
     }
 
     // Default fallback

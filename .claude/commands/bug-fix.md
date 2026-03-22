@@ -1,6 +1,6 @@
 ---
-description: 扫描 bug 目录并自动修复未修复的 bug
-allowed-tools: Bash,Read,Write,Edit,Glob,Grep
+description: "扫描 bug 目录并自动修复未修复的 bug"
+allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 ---
 
 # /bug-fix — 自动 Bug 修复工具
