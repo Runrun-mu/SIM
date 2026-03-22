@@ -83,9 +83,9 @@ export class SimulationHandler {
   }
 
   private startSimulation(config: ScenarioConfig, agents: AgentIdentity[]): void {
-    if (this.engine?.getStatus() === 'running') {
-      this.send({ type: 'error', message: 'Simulation already running' });
-      return;
+    // Stop any existing simulation first
+    if (this.engine) {
+      this.engine.stop();
     }
 
     this.observatory.clear();
@@ -96,21 +96,28 @@ export class SimulationHandler {
       return;
     }
 
-    this.engine = new SimulationEngine(config, agents, environment, this.llm, {
+    const engine = new SimulationEngine(config, agents, environment, this.llm, {
       tickDelay: 1000,
       onTick: (metrics) => {
-        this.observatory.record(metrics);
-        this.send({ type: 'tick', data: metrics });
+        // Only send if this engine is still the active one
+        if (this.engine === engine) {
+          this.observatory.record(metrics);
+          this.send({ type: 'tick', data: metrics });
+        }
       },
     });
 
+    this.engine = engine;
     this.send({ type: 'simulation-started', config });
 
-    this.engine.start().then(() => {
-      this.send({
-        type: 'simulation-ended',
-        summary: this.observatory.computeSummary(),
-      });
+    engine.start().then(() => {
+      // Only send ended if this engine is still the active one
+      if (this.engine === engine) {
+        this.send({
+          type: 'simulation-ended',
+          summary: this.observatory.computeSummary(),
+        });
+      }
     });
   }
 

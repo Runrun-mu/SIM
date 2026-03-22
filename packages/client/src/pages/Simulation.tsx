@@ -32,6 +32,7 @@ export default function Simulation() {
     }
   }, [status, summary, scenarioType, config, agents, tickHistory]);
 
+  // Connect WS, subscribe, and start simulation
   useEffect(() => {
     if (!scenarioType || agents.length < 2) {
       navigate('/');
@@ -42,9 +43,11 @@ export default function Simulation() {
     wsClient.connect();
     const unsub = wsClient.onMessage(handleWSMessage);
 
-    // Start simulation once connected
+    // Only start simulation once per mount
     if (!initialized.current) {
       initialized.current = true;
+      savedRef.current = false;
+
       const tryStart = () => {
         if (wsClient.isConnected()) {
           wsClient.send({
@@ -76,6 +79,7 @@ export default function Simulation() {
 
   const handleBack = () => {
     wsClient.send({ type: 'stop' });
+    initialized.current = false;
     reset();
     navigate('/');
   };
