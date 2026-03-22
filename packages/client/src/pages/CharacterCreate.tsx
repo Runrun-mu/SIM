@@ -88,8 +88,16 @@ const presets: Omit<AgentIdentity, 'id'>[] = [
 
 export default function CharacterCreate() {
   const navigate = useNavigate();
-  const { scenarioType, agents, addAgent, removeAgent, updateAgent, setAgents } =
-    useSimulationStore();
+  const {
+    scenarioType,
+    agents,
+    maxTicks,
+    addAgent,
+    removeAgent,
+    updateAgent,
+    setAgents,
+    setMaxTicks,
+  } = useSimulationStore();
   const [editingId, setEditingId] = useState<string | null>(null);
 
   if (!scenarioType) {
@@ -125,7 +133,10 @@ export default function CharacterCreate() {
           <h1 className="text-3xl font-bold text-white">
             Character Setup
             <span className="text-cyber-cyan ml-2 text-lg font-mono">
-              {scenarioType === 'prisoners-dilemma' ? "Prisoner's Dilemma" : 'Wealth Distribution'}
+              {scenarioType
+                .split('-')
+                .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(' ')}
             </span>
           </h1>
         </div>
@@ -258,14 +269,65 @@ export default function CharacterCreate() {
       )}
 
       {agents.length >= 2 && (
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={handleStartSimulation}
-            className="px-8 py-3 rounded-xl bg-gradient-to-r from-cyber-cyan to-cyber-purple text-white font-bold text-lg hover:opacity-90 transition-opacity"
-          >
-            Start Simulation ({agents.length} agents)
-          </button>
+        <div className="space-y-6">
+          {/* Simulation Settings */}
+          <div className="p-6 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl">
+            <h2 className="text-sm font-mono text-gray-400 mb-4 uppercase tracking-wider">
+              Simulation Settings
+            </h2>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                <label htmlFor="maxTicks" className="text-sm text-gray-300 whitespace-nowrap">
+                  Max Ticks
+                </label>
+                <input
+                  id="maxTicks"
+                  type="number"
+                  min={1}
+                  max={100000}
+                  value={maxTicks}
+                  onChange={(e) => {
+                    const v = Number(e.target.value);
+                    if (v >= 1 && v <= 100000) setMaxTicks(v);
+                  }}
+                  className="w-28 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-cyber-cyan/50 focus:outline-none"
+                />
+              </div>
+              {/* Quick presets */}
+              <div className="flex gap-2">
+                {[20, 100, 1000, 10000, 100000].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setMaxTicks(n)}
+                    className={`px-2.5 py-1 rounded text-xs font-mono transition-colors ${
+                      maxTicks === n
+                        ? 'bg-cyber-cyan/20 text-cyber-cyan border border-cyber-cyan/30'
+                        : 'text-gray-500 hover:text-gray-300 border border-white/5 hover:border-white/10'
+                    }`}
+                  >
+                    {n >= 1000 ? `${n / 1000}k` : n}
+                  </button>
+                ))}
+              </div>
+              <span className="text-xs text-gray-600 ml-auto">
+                {maxTicks > 1000
+                  ? `~${Math.ceil((maxTicks * 1) / 60)} min @ 1x speed`
+                  : `~${maxTicks}s @ 1x speed`}
+              </span>
+            </div>
+          </div>
+
+          {/* Start Button */}
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={handleStartSimulation}
+              className="px-8 py-3 rounded-xl bg-gradient-to-r from-cyber-cyan to-cyber-purple text-white font-bold text-lg hover:opacity-90 transition-opacity"
+            >
+              Start Simulation ({agents.length} agents · {maxTicks.toLocaleString()} ticks)
+            </button>
+          </div>
         </div>
       )}
     </div>

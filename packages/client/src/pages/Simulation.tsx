@@ -11,8 +11,17 @@ import { saveRun } from './MultiDashboard';
 
 export default function Simulation() {
   const navigate = useNavigate();
-  const { scenarioType, agents, status, config, summary, tickHistory, reset, handleWSMessage } =
-    useSimulationStore();
+  const {
+    scenarioType,
+    agents,
+    status,
+    config,
+    summary,
+    tickHistory,
+    maxTicks,
+    reset,
+    handleWSMessage,
+  } = useSimulationStore();
   const initialized = useRef(false);
   const savedRef = useRef(false);
 
@@ -59,7 +68,7 @@ export default function Simulation() {
                 .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
                 .join(' '),
               description: '',
-              maxTicks: 20,
+              maxTicks,
               agentCount: agents.length,
               parameters: {},
             },
@@ -75,7 +84,7 @@ export default function Simulation() {
     return () => {
       unsub();
     };
-  }, [scenarioType, agents, config, navigate, handleWSMessage]);
+  }, [scenarioType, agents, config, maxTicks, navigate, handleWSMessage]);
 
   const handleBack = () => {
     wsClient.send({ type: 'stop' });

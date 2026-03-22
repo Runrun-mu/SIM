@@ -3,8 +3,9 @@ import { useUIStore } from '../stores/ui';
 import { wsClient } from '../ws/client';
 
 export default function ControlBar({ onBack }: { onBack: () => void }) {
-  const { status, currentTick, scenarioType } = useSimulationStore();
+  const { status, currentTick, scenarioType, config } = useSimulationStore();
   const { speed, setSpeed } = useUIStore();
+  const maxTicks = config?.maxTicks ?? useSimulationStore.getState().maxTicks;
 
   const handlePause = () => wsClient.send({ type: 'pause' });
   const handleResume = () => wsClient.send({ type: 'resume' });
@@ -24,12 +25,19 @@ export default function ControlBar({ onBack }: { onBack: () => void }) {
       <div className="h-6 w-px bg-white/10" />
 
       <span className="text-cyber-cyan font-mono text-sm">
-        {scenarioType === 'prisoners-dilemma' ? '⚔️ PD' : '💰 WD'}
+        {scenarioType
+          ? scenarioType
+              .split('-')
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(' ')
+          : '—'}
       </span>
 
       <div className="h-6 w-px bg-white/10" />
 
-      <span className="text-white font-mono text-sm">Tick: {currentTick}</span>
+      <span className="text-white font-mono text-sm">
+        Tick: {currentTick.toLocaleString()} / {maxTicks.toLocaleString()}
+      </span>
 
       <div
         className={`w-2 h-2 rounded-full ${status === 'running' ? 'bg-green-400 animate-pulse' : status === 'paused' ? 'bg-yellow-400' : 'bg-gray-500'}`}

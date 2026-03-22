@@ -21,6 +21,7 @@ interface SimulationStore {
   scenarioType: ScenarioType | null;
   config: ScenarioConfig | null;
   agents: AgentIdentity[];
+  maxTicks: number;
 
   // Runtime
   status: SimulationStatus;
@@ -39,6 +40,7 @@ interface SimulationStore {
   removeAgent: (id: string) => void;
   updateAgent: (id: string, updates: Partial<AgentIdentity>) => void;
   setAgents: (agents: AgentIdentity[]) => void;
+  setMaxTicks: (ticks: number) => void;
   setStatus: (status: SimulationStatus) => void;
   addTick: (tick: TickMetrics) => void;
   addDecision: (decision: AgentDecision) => void;
@@ -52,6 +54,7 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
   scenarioType: null,
   config: null,
   agents: [],
+  maxTicks: 20,
   status: 'idle',
   currentTick: 0,
   tickHistory: [],
@@ -68,6 +71,7 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
       agents: s.agents.map((a) => (a.id === id ? { ...a, ...updates } : a)),
     })),
   setAgents: (agents) => set({ agents }),
+  setMaxTicks: (ticks) => set({ maxTicks: ticks }),
   setStatus: (status) => set({ status }),
   addTick: (tick) =>
     set((s) => ({
@@ -93,10 +97,16 @@ export const useSimulationStore = create<SimulationStore>((set) => ({
         set({ status: 'running', currentTick: 0, tickHistory: [], decisions: [], summary: null });
         break;
       case 'tick':
-        set((s) => ({
-          tickHistory: [...s.tickHistory, msg.data],
-          currentTick: msg.data.tick,
-        }));
+        set((s) => {
+          // Keep last 200 ticks in memory to avoid OOM on long simulations
+          const MAX_HISTORY = 200;
+          const newHistory = [...s.tickHistory, msg.data];
+          return {
+            tickHistory:
+              newHistory.length > MAX_HISTORY ? newHistory.slice(-MAX_HISTORY) : newHistory,
+            currentTick: msg.data.tick,
+          };
+        });
         break;
       case 'agent-decision':
         set((s) => ({
